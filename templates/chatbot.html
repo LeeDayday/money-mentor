@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot Interface</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .chat-container {
+        width: 400px;
+        max-width: 100%;
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .chat-box {
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        border-bottom: 1px solid #ddd;
+      }
+      .chat-message {
+        padding: 8px;
+        margin: 5px 0;
+        border-radius: 10px;
+      }
+      .bot-message {
+        background-color: #e0e0e0;
+        text-align: left;
+      }
+      .user-message {
+        background-color: #4caf50;
+        color: white;
+        text-align: right;
+      }
+      .options-container {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+      }
+      .option {
+        margin: 5px 0;
+        padding: 15px;
+        border-radius: 10px;
+        cursor: pointer;
+        background-color: #e0e0e0;
+        transition: background-color 0.3s, box-shadow 0.3s;
+      }
+      .option:hover {
+        background-color: #d0d0d0;
+      }
+      .selected {
+        background-color: #4caf50;
+        color: white;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      }
+      .input-container {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+      }
+      .text-input {
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      }
+      .send-btn {
+        margin-top: 10px;
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .send-btn:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-container">
+      <div class="chat-box" id="chatBox"></div>
+      <div class="options-container" id="optionsContainer"></div>
+      <div class="input-container" id="inputContainer" style="display: none">
+        <input
+          type="text"
+          id="textInput"
+          class="text-input"
+          placeholder="Type your answer..."
+        />
+      </div>
+      <button class="send-btn" onclick="sendMessage()" id="sendButton">
+        전송
+      </button>
+    </div>
+
+    <script>
+      // localstorage 에 custom Id가 없는 경우, 생성
+      let customId = null;
+
+      async function fetchCustomId() {
+        const response = await fetch('{% url "generate_custom_id" %}');
+        const data = await response.json();
+        customId = data.customId;
+        localStorage.setItem("customId", customId);
+      }
+
+      // customId가 없을 때 fetchCustomId 호출
+      async function ensureCustomId() {
+        if (!customId) {
+          if (localStorage.getItem("customId") === null) {
+            await fetchCustomId(); // 비동기적으로 customId를 생성
+          } else {
+            customId = localStorage.getItem("customId");
+          }
+        }
+      }
+
+      const chatBox = document.getElementById("chatBox");
+
+      // 설문 조사
+      let qna_results = {};
+      let questions;
+      let questionIndex = 0;
+      let selectedOptions = [];
+
+      async function loadQuestions() {
+        const response = await fetch("{% url 'get_questions' %}");
+        questions = await response.json();
+        displayNextQuestion();
+      }
+
+      function displayBotMessage(message) {
+        const botMessage = document.createElement("div");
+        botMessage.classList.add("chat-message", "bot-message");
+        botMessage.textContent = message;
+        document.getElementById("chatBox").appendChild(botMessage);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function displayOptions(options, type) {
+        const optionsContainer = document.getElementById("optionsContainer");
+        optionsContainer.innerHTML = "";
+
+        options.forEach((option) => {
+          const optionElement = document.createElement("div");
+          optionElement.textContent = option;
+          optionElement.classList.add("option");
+          optionElement.onclick = () =>
+            selectOption(optionElement, option, type);
+          optionsContainer.appendChild(optionElement);
+        });
+        optionsContainer.style.display = "block";
+        document.getElementById("inputContainer").style.display = "none";
+      }
+
+      function displayNextQuestion() {
+        const currentQuestion = questions[questionIndex];
+        displayBotMessage(currentQuestion.question);
+
+        if (currentQuestion.type === "text") {
+          displayTextInput();
+        } else {
+          displayOptions(currentQuestion.options, currentQuestion.type);
+        }
+      }
+
+      function displayTextInput() {
+        document.getElementById("optionsContainer").style.display = "none";
+        document.getElementById("inputContainer").style.display = "block";
+      }
+
+      function selectOption(element, value, type) {
+        if (type === "single") {
+          const selectedElements =
+            document.querySelectorAll(".option.selected");
+          selectedElements.forEach((el) => {
+            el.classList.remove("selected");
+          });
+          element.classList.add("selected");
+          selectedOptions = [value];
+        } else if (type === "multiple") {
+          const index = selectedOptions.indexOf(value);
+          if (index === -1) {
+            selectedOptions.push(value);
+            element.classList.add("selected");
+          } else {
+            selectedOptions.splice(index, 1);
+            element.classList.remove("selected");
+          }
+        }
+      }
+
+      async function sendMessage() {
+        let answer;
+        const currentQuestion = questions[questionIndex];
+        if (
+          currentQuestion.type === "multiple" ||
+          currentQuestion.type === "single"
+        ) {
+          if (selectedOptions.length > 0) {
+            answer =
+              currentQuestion.type === "single"
+                ? selectedOptions[0]
+                : selectedOptions;
+          } else {
+            alert("옵션을 선택해주세요!");
+            return;
+          }
+        } else if (currentQuestion.type === "text") {
+          answer = document.getElementById("textInput").value.trim();
+          if (!answer) {
+            alert("답변을 입력해주세요!");
+            return;
+          }
+        }
+        questionIndex++;
+        if (questionIndex < questions.length) {
+          // question에 summary 필드가 있는 경우에만 answer 저장
+          if ("summary" in currentQuestion) {
+            qna_results[currentQuestion.summary] = answer;
+          }
+          // 입력 필드 초기화
+          selectedOptions = [];
+          document.getElementById("textInput").value = "";
+
+          // 다음 문제로
+          displayNextQuestion();
+        } else {
+          displayBotMessage("모든 질문에 답변하셨습니다. 감사합니다!");
+          // 서버에 데이터를 전송
+          if (localStorage.getItem("customId") === null) {
+            fetchCustomId();
+          }
+          fetch("{% url 'submit_response' %}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              customId: customId, // 사용자 ID
+              responses: qna_results, // 질문과 답변 데이터
+            }),
+          })
+            .then((response) => {
+              if (response.ok) {
+                return response.json();
+              } else {
+                throw new Error("Failed to save responses.");
+              }
+            })
+            .then((data) => {
+              console.log(data.message); // 성공 메시지 출력
+            })
+            .catch((error) => {
+              console.error("Error:", error); // 에러 메시지 출력
+            });
+        }
+      }
+
+      // 설문 시작 시 customId 확인
+      document.addEventListener("DOMContentLoaded", async () => {
+        await ensureCustomId(); // customId 보장
+        loadQuestions(); // 설문 질문 로드
+      });
+    </script>
+  </body>
+</html>
