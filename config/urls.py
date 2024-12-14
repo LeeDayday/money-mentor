@@ -22,7 +22,8 @@ from rag.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('chatbot/', chatbot_interface, name='interface'),
+    path('survey/', survey_interface, name='survey_interface'),
+    path('chatbot/', chatbot_interface, name='chatbot_interface'),
     path('generate-id/', generate_id, name='generate_custom_id'),
     path('get-questions/', get_questions, name='get_questions'),
     path('submit-response/', submit_response, name='submit_response'),

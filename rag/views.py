@@ -59,13 +59,18 @@ def submit_response(request):
                 defaults={'responses': responses}
             )
 
-            return JsonResponse({'message': 'Responses saved successfully!'})
+            return JsonResponse({'message': 'Responses saved successfully!', 'redirect': '/chatbot/'})
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON format'}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# HTML 렌더링
+def survey_interface(request):
+    return render(request, 'survey.html')
 
 
 # HTML 렌더링
