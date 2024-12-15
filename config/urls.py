@@ -16,7 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.shortcuts import render
+
+from rag.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('survey/', survey_interface, name='survey_interface'),
+    path('chatbot/', chatbot_interface, name='chatbot_interface'),
+    path('generate-id/', generate_id, name='generate_custom_id'),
+    path('get-questions/', get_questions, name='get_questions'),
+    path('submit-response/', submit_response, name='submit_response'),
+    path('ask-openai/', ask_openai, name='ask_openai')
 ]

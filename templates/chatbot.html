@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Chatbot</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .chat-container {
+        width: 400px;
+        max-width: 100%;
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 80vh;
+      }
+      .chat-box {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        border-bottom: 1px solid #ddd;
+      }
+      .chat-message {
+        padding: 8px;
+        margin: 5px 0;
+        border-radius: 10px;
+      }
+      .bot-message {
+        background-color: #e0e0e0;
+        text-align: left;
+      }
+      .user-message {
+        background-color: #4caf50;
+        color: white;
+        text-align: right;
+      }
+      .input-container {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid #ddd;
+        background-color: #f9f9f9;
+      }
+      .text-input {
+        flex: 1;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      }
+      .send-btn {
+        margin-left: 10px;
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .send-btn:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-container">
+      <div class="chat-box" id="chatBox"></div>
+      <div class="input-container">
+        <input
+          type="text"
+          id="textInput"
+          class="text-input"
+          placeholder="Type your message..."
+        />
+        <button class="send-btn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+    <script>
+      const chatBox = document.getElementById("chatBox");
+      const textInput = document.getElementById("textInput");
+
+function displayBotMessage(response) {
+  const { answer, recommendations } = response;
+
+  // Display the answer
+  if (answer) {
+    const botAnswer = document.createElement("div");
+    botAnswer.classList.add("chat-message", "bot-message");
+    botAnswer.textContent = answer; // Display answer text
+    chatBox.appendChild(botAnswer);
+  }
+
+  // Display the recommendations dynamically
+  if (recommendations && recommendations.length > 0) {
+    const botRecommendations = document.createElement("div");
+    botRecommendations.classList.add("chat-message", "bot-message");
+
+    let recommendationHTML = "<strong>Recommendations:</strong><ul>";
+    recommendations.forEach((recommendation) => {
+      recommendationHTML += "<li>";
+      // Iterate over all keys in the object
+      for (const key in recommendation) {
+        if (recommendation.hasOwnProperty(key)) {
+          recommendationHTML += `<strong>${key}:</strong> ${recommendation[key]}<br>`;
+        }
+      }
+      recommendationHTML += "</li>";
+    });
+    recommendationHTML += "</ul>";
+
+    botRecommendations.innerHTML = recommendationHTML;
+    chatBox.appendChild(botRecommendations);
+  }
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+      function displayUserMessage(message) {
+        const userMessage = document.createElement("div");
+        userMessage.classList.add("chat-message", "user-message");
+        userMessage.textContent = message;
+        chatBox.appendChild(userMessage);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+async function sendMessage() {
+  const userMessage = textInput.value.trim();
+  if (!userMessage) return;
+
+  displayUserMessage(userMessage);
+  textInput.value = "";
+
+  try {
+    const response = await fetch("/ask-openai/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        input: userMessage,
+        customId: localStorage.getItem("customId"),
+      }),
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch the AI response.");
+
+    const data = await response.json();
+
+    // Ensure response has the expected structure
+    if (data.response && data.response.answer) {
+      displayBotMessage(data.response);
+    } else {
+      throw new Error("Unexpected response structure.");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    displayBotMessage({
+      answer: "Sorry, something went wrong. Please try again.",
+      recommendations: [],
+    });
+  }
+}
+    </script>
+  </body>
+</html>
