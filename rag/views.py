@@ -9,6 +9,10 @@ from django.conf import settings
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
+from .rag_utils import *
+from .rag_utils import get_conversational_rag_chain
+
+rag_chain = None
 
 def generate_id(request):
     """
@@ -45,19 +49,22 @@ def submit_response(request):
     """
     사용자 답변을 데이터베이스에 저장하는 함수
     """
+    global rag_chain
     if request.method == "POST":
         try:
             data = json.loads(request.body)  # 요청 데이터를 JSON으로 파싱
             custom_id = data.get('customId')  # 사용자 ID
             responses = data.get('responses')  # 질문과 답변 데이터
+            print(custom_id)
+            print(responses)
             if not custom_id or not responses:
                 return JsonResponse({'error': 'Invalid data'}, status=400)
-
             # 데이터 저장 또는 업데이트
             ChatbotResponse.objects.update_or_create(
                 custom_id=custom_id,
                 defaults={'responses': responses}
             )
+            rag_chain = get_conversational_rag_chain(custom_id)  # Chain 생성
 
             return JsonResponse({'message': 'Responses saved successfully!', 'redirect': '/chatbot/'})
         except json.JSONDecodeError:
@@ -66,6 +73,48 @@ def submit_response(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+@csrf_exempt
+def ask_openai(request):
+    """
+    OpenAI API 호출을 포함한 Chatbot 응답 처리 View
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user_input = data.get("input")
+            custom_id = data.get('customId')
+
+            if not user_input:
+                return JsonResponse({"error": "No input provided."}, status=400)
+
+            # Use the global chain to generate the response
+            global rag_chain
+            try:
+                response = rag_chain.invoke(
+                    {"input": user_input},
+                    config={
+                        "configurable": {"session_id": custom_id}
+                    },
+                )
+                # Parse the 'answer' field from the response
+                answer_data = json.loads(response.get('answer'))  # JSON 문자열을 딕셔너리로 변환
+                answer = answer_data.get("answer", "No answer provided.")
+                recommendations = answer_data.get("recommendations", [])
+                print(f"answer: {answer}")
+                print(f"recommendations: {recommendations}")
+            except Exception as e:
+                return JsonResponse({'error rag_chain': str(e)}, status=500)
+            return JsonResponse({"response": {
+                "answer": answer,
+                "recommendations": recommendations
+            }})
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": "Something went wrong.", "details": str(e)}, status=500)
+    return JsonResponse({"error": "Invalid method"}, status=405)
 
 
 # HTML 렌더링
