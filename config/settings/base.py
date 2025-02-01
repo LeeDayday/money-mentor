@@ -38,9 +38,12 @@ THIRD_PARTY_APPS = [
     'drf_spectacular',
 ]
 LOCAL_APPS = [
+    'accounts',
     'rag',
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -53,6 +56,13 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware'
 ]
 
+# django-allauth config
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
