@@ -25,6 +25,7 @@ DJANGO_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.forms',
+    #'django.contrib.sites',
 ]
 THIRD_PARTY_APPS = [
     'crispy_forms',
@@ -39,6 +40,7 @@ THIRD_PARTY_APPS = [
 ]
 LOCAL_APPS = [
     'accounts',
+    'pages',
     'rag',
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -56,13 +58,18 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware'
 ]
 
-# django-allauth config
-SITE_ID = 1
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
 
+# django-allauth config
+#SITE_ID = 1
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
