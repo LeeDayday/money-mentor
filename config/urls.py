@@ -22,8 +22,10 @@ from rag.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('pages.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
+    # Local apps
+    path('accounts/', include('accounts.urls')),
+    path('', include('pages.urls')),
     path('survey/', survey_interface, name='survey_interface'),
     path('chatbot/', chatbot_interface, name='chatbot_interface'),
     path('generate-id/', generate_id, name='generate_custom_id'),
