@@ -16,15 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import render
 
 from rag.views import *
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', include('allauth.urls')),
     # Local apps
-    path('accounts/', include('accounts.urls')),
     path('', include('pages.urls')),
     path('survey/', survey_interface, name='survey_interface'),
     path('chatbot/', chatbot_interface, name='chatbot_interface'),
@@ -33,3 +30,4 @@ urlpatterns = [
     path('submit-response/', submit_response, name='submit_response'),
     path('ask-openai/', ask_openai, name='ask_openai')
 ]
+

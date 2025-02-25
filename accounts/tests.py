@@ -3,7 +3,6 @@ from django.test import TestCase
 from django.urls import reverse, resolve
 
 from .forms import CustomUserCreationForm
-from .views import SignupPageView
 
 
 class CustomUserTests(TestCase):
@@ -30,25 +29,23 @@ class CustomUserTests(TestCase):
         self.assertTrue(admin_user.is_superuser)
 
 class SignUpPageTests(TestCase):
+    username = 'newuser'
+    email = 'newuser@email.com'
+
     def setUp(self):
         """각 테스트 (method) 실행 전에 실행됨 (초기 설정)"""
-        url = reverse('signup')  # URL 가져오기
+        url = reverse('account_signup')  # URL 가져오기
         self.response = self.client.get(url)
 
     def test_signup_template(self):
-        """회원가입 페이지가 정상적으로 렌더링되는지 확인"""
         self.assertEqual(self.response.status_code, 200)
-        self.assertTemplateUsed(self.response, 'registration/signup.html')
+        self.assertTemplateUsed(self.response, 'account/signup.html')
         self.assertContains(self.response, 'Sign Up')
-        self.assertNotContains(self.response, 'Hi there! I should not be on the page.')
+        self.assertNotContains(self.response, 'Hi there! I should not be on the page')
 
     def test_signup_form(self):
-        """회원가입 페이지에서 올바른 폼이 전달되고, csrf 보안이 적용되었는지 검증"""
-        form = self.response.context.get('form') # view에서 전달된 form 가져오기
-        self.assertIsInstance(form, CustomUserCreationForm)
-        self.assertContains(self.response, 'csrfmiddlewaretoken')
-
-    def test_signup_view(self):
-        """URL '/accounts/signup/'이 SignupPageView와 올바르게 매핑되는지 검증"""
-        view = resolve('/accounts/signup/') # 해당 URL과 연결된 view 정보 반환
-        self.assertEqual(view.func.__name__, SignupPageView.as_view().__name__)
+        """회원가입 폼이 올바르게 동작하여 사용자 객체가 정상적으로 생성되는지 검증하는 테스트"""
+        new_user = get_user_model().objects.create_user(self.username, self.email)
+        self.assertEqual(get_user_model().objects.all().count(), 1)
+        self.assertEqual(get_user_model().objects.all()[0].username, self.username)
+        self.assertEqual(get_user_model().objects.all()[0].email, self.email)
