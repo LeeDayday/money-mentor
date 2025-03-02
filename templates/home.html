@@ -14,5 +14,9 @@
     <p>You are not logged in</p>
     <a href='{% url 'account_login' %}'>Log in</a>
     <a href='{% url 'account_signup' %}'>Sign Up</a>
+    {% load socialaccount %}
+    <a role="button" class="btn btn-outline-dark btn-block btn-sm" href="{% provider_login_url 'google' %}">
+	<i class="fa-brands fa-google"></i> Log in with Google
+</a>
   {% endif %}
 {% endblock content %}

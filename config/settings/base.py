@@ -30,8 +30,12 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
+    # allauth
     'allauth',
     'allauth.account',
+    # allauth - google
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'django_celery_beat',
     'rest_framework',
     'rest_framework.authtoken',
