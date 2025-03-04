@@ -15,13 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from django.shortcuts import render
+from django.urls import path, include
 
 from rag.views import *
-
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
+    # Local apps
+    path('', include('pages.urls')),
     path('survey/', survey_interface, name='survey_interface'),
     path('chatbot/', chatbot_interface, name='chatbot_interface'),
     path('generate-id/', generate_id, name='generate_custom_id'),
@@ -29,3 +30,4 @@ urlpatterns = [
     path('submit-response/', submit_response, name='submit_response'),
     path('ask-openai/', ask_openai, name='ask_openai')
 ]
+
