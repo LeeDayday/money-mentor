@@ -36,16 +36,16 @@ THIRD_PARTY_APPS = [
     # allauth - google
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'django_celery_beat',
-    'rest_framework',
-    'rest_framework.authtoken',
+    #'django_celery_beat',
+    #'rest_framework',
+    #'rest_framework.authtoken',
     'corsheaders',
-    'drf_spectacular',
+    #'drf_spectacular',
 ]
 LOCAL_APPS = [
     'accounts',
     'pages',
-    'rag',
+    #'rag',
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
