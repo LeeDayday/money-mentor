@@ -24,12 +24,12 @@ pgvector==0.3.2  # PostgreSQL에서 벡터 데이터 저장 및 검색 지원
 # ----------------------------------------
 # 📌 RAG 및 AI 관련 패키지 (아직 미사용)
 # ----------------------------------------
-# langchain==0.3.11  # LangChain 프레임워크 (RAG 구성)
-# langchain-core==0.3.25  # LangChain 핵심 기능
-# langchain-community==0.3.11  # LangChain 커뮤니티 확장 기능
-# langchain-openai==0.2.12  # LangChain의 OpenAI LLM API 지원
-# openai==1.57.4  # OpenAI API 지원
-# faiss-cpu==1.9.0.post1  # Facebook AI가 만든 벡터 검색 라이브러리 (FAISS)
+langchain==0.3.11  # LangChain 프레임워크 (RAG 구성)
+langchain-core==0.3.25  # LangChain 핵심 기능
+langchain-community==0.3.11  # LangChain 커뮤니티 확장 기능
+langchain-openai==0.2.12  # LangChain의 OpenAI LLM API 지원
+openai==1.57.4  # OpenAI API 지원
+faiss-cpu==1.9.0.post1  # Facebook AI가 만든 벡터 검색 라이브러리 (FAISS)
 
 # ----------------------------------------
 # 📌 Celery (비동기 작업 큐) 관련 패키지 (아직 미사용)
