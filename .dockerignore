@@ -1,5 +1,3 @@
 .venv
 .git
 .gitignore
-.rag
-.faiss_index
